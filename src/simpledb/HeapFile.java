@@ -57,7 +57,7 @@ public class HeapFile implements DbFile {
      * Returns a Page from tHhe file.
      */
     public Page readPage(PageId pid) throws NoSuchElementException, IOException, FileNotFoundException {
-	//System.out.println("read hf page" + pid.tableid() +"  "+pid.pageno());
+	System.out.println("read hf page" + pid.tableid() +"  "+pid.pageno());
      
 	byte [] readpage = new byte[BufferPool.PAGE_SIZE];
 	for(int i=0; i<BufferPool.PAGE_SIZE; i++)

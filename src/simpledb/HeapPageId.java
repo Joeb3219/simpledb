@@ -55,8 +55,8 @@ public class HeapPageId implements PageId {
     public boolean equals(Object o) {
 	try {
 	    PageId pid = (PageId) o;
-        return this.tableid() == pid.tableid() && this.pageno() == pid.pageno();
-//	    return this.hashCode()==pid.hashCode();
+//        return this.tableid() == pid.tableid() && this.pageno() == pid.pageno();
+	    return this.hashCode()==pid.hashCode();
 	} catch (Exception e) {
 	    return false;
 	}

@@ -289,8 +289,7 @@ public class HeapPage implements Page {
 
         int h = header[hNum];
 
-
-        int bit = ((h >> (31 - offset))) & 0x1;
+        int bit = ((h >> (offset))) & 0x1;
         return bit == 1;
 	}
 	
@@ -298,17 +297,21 @@ public class HeapPage implements Page {
      * Abstraction to fill a slot on this page.
      */
     private void setSlot(int i, boolean value) {
-        System.out.println("Setting slot " + i + " to " + value);
         int hNum = (int) Math.floor(i / 32.0);
-        int offset = i % 32;
+        int offset = 31 - (i % 32);
 
         int h = header[hNum];
 
+        System.out.println("Before setting " + i + " -> " + value + " => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
 
-        int mask = 0xFFFFFF & ((value ? 0x1 : 0x0) << (31 - offset));
+        if(value){
+            h |= (0x1 << offset);
+        }else{
+            h &= ~(0x1 << offset);
+        }
 
-        System.out.printf("Header is currently: %x, using a mask: %x, result: %x\n", h, mask, h & mask);
-        h &= mask;
+        System.out.println("After setting => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
+
     }
 
     /**

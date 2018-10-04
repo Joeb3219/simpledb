@@ -62,23 +62,13 @@ public class BufferPool {
     public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException, IOException {
     	
-        System.out.println("Requesting page " + pid.pageno());
+        System.out.println("Requesting page " + pid.pageno() + " " + pid.tableid());
 
         System.out.println("Here's what I have in memory:");
 
-
-        if(buffer[0] == null){
-            Catalog catalog = Database.getCatalog();
-            DbFile file = catalog.getDbFile(pid.tableid());
-            buffer[0] = file.readPage(pid);
-        }
-
-        return buffer[0];
-
-/*
         for(Page p : buffer){
             if(p == null) continue;
-            System.out.println("\t\t" + p.id().pageno());
+            System.out.println("\t\t" + p.id().pageno() + ", " + p.id().tableid());
             System.out.println("\t\t\t\t" + p.id() + "\t" + pid);
         }
 
@@ -92,13 +82,17 @@ public class BufferPool {
         for(int i = 0; i < buffer.length; i ++){
             Page p = buffer[i];
             if(p == null){
-                buffer[i] = new HeapPage((HeapPageId) pid, new byte[PAGE_SIZE]);
+                Catalog catalog = Database.getCatalog();
+                DbFile file = catalog.getDbFile(pid.tableid());
+                buffer[i] = file.readPage(pid);
+
                 return buffer[i];
             }
+
         }
 
         throw new DbException("BufferPool out of fre pages.");
-*/
+
 	}
     
     /**
