@@ -38,6 +38,7 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         //IMPLEMENT THIS
+        System.out.println("Creating a pool with " + numPages + " pages");
         buffer = new HeapPage[numPages];
 
     }
@@ -61,9 +62,31 @@ public class BufferPool {
     public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException, IOException {
     	
+        System.out.println("Requesting page " + pid.pageno());
+
+        System.out.println("Here's what I have in memory:");
+
+
+        if(buffer[0] == null){
+            Catalog catalog = Database.getCatalog();
+            DbFile file = catalog.getDbFile(pid.tableid());
+            buffer[0] = file.readPage(pid);
+        }
+
+        return buffer[0];
+
+/*
         for(Page p : buffer){
             if(p == null) continue;
-            if(p.id() == (HeapPageId) pid) return p;
+            System.out.println("\t\t" + p.id().pageno());
+            System.out.println("\t\t\t\t" + p.id() + "\t" + pid);
+        }
+
+        System.out.println("That's it");
+
+        for(Page p : buffer){
+            if(p == null) continue;
+            if(p.id().equals(pid)) return p;
         }
 
         for(int i = 0; i < buffer.length; i ++){
@@ -75,6 +98,7 @@ public class BufferPool {
         }
 
         throw new DbException("BufferPool out of fre pages.");
+*/
 	}
     
     /**

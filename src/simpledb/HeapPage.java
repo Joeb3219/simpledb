@@ -269,23 +269,46 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        //IMPLEMENT THIS
-    	return 0;
+        int numEmpty = 0;
+
+        System.out.println("There are " + header.length + " headers, for " + numSlots + " slots.");
+
+        for(int j = 0; j < numSlots; j ++){
+            if(!getSlot(j)) numEmpty ++;
+        }
+    	
+        return numEmpty;
     }
     
     /**
      * Returns true if associated slot on this page is filled.
      */
     public boolean getSlot(int i) {
-    	//IMPLEMENT THIS
-	     return false;
+    	int hNum = (int) Math.floor(i / 32.0);
+        int offset = i % 32;
+
+        int h = header[hNum];
+
+
+        int bit = ((h >> (31 - offset))) & 0x1;
+        return bit == 1;
 	}
 	
     /**
      * Abstraction to fill a slot on this page.
      */
     private void setSlot(int i, boolean value) {
-    	//IMPLEMENT THIS
+        System.out.println("Setting slot " + i + " to " + value);
+        int hNum = (int) Math.floor(i / 32.0);
+        int offset = i % 32;
+
+        int h = header[hNum];
+
+
+        int mask = 0xFFFFFF & ((value ? 0x1 : 0x0) << (31 - offset));
+
+        System.out.printf("Header is currently: %x, using a mask: %x, result: %x\n", h, mask, h & mask);
+        h &= mask;
     }
 
     /**
