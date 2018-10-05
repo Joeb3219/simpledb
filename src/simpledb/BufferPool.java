@@ -27,6 +27,8 @@ public class BufferPool {
     int _numhits=0;
     int _nummisses=0;
 
+    long usageCounter = 0;
+
     Page buffer[];
     
     
@@ -64,7 +66,7 @@ public class BufferPool {
     	
         System.out.println("Requesting page " + pid.pageno() + " " + pid.tableid());
 
-        System.out.println("Here's what I have in memory:");
+/*        System.out.println("Here's what I have in memory:");
 
         for(Page p : buffer){
             if(p == null) continue;
@@ -73,26 +75,26 @@ public class BufferPool {
         }
 
         System.out.println("That's it");
-
-        for(Page p : buffer){
-            if(p == null) continue;
-            if(p.id().equals(pid)) return p;
-        }
-
+*/
         for(int i = 0; i < buffer.length; i ++){
             Page p = buffer[i];
-            if(p == null){
-                Catalog catalog = Database.getCatalog();
-                DbFile file = catalog.getDbFile(pid.tableid());
-                buffer[i] = file.readPage(pid);
+            if(p == null) continue;
+            if(p.id().equals(pid)) {
 
-                return buffer[i];
+                pinPage(i);
+
+                return p;
             }
-
         }
 
-        throw new DbException("BufferPool out of fre pages.");
+        int newId = evictPage();
+        Catalog catalog = Database.getCatalog();
+        DbFile file = catalog.getDbFile(pid.tableid());
+        buffer[newId] = file.readPage(pid);
 
+        pinPage(newId);
+
+        return buffer[newId];
 	}
     
     /**
@@ -103,7 +105,10 @@ public class BufferPool {
      * @param index the index of the page in the buffer pool
      */      
     public void pinPage(int index) {
-    	//IMPLEMENT THIS
+        if(buffer[index] == null) return;
+        HeapPage p = (HeapPage) buffer[index];
+        p.pin_count ++;
+        p.lastUsage = (usageCounter ++);
     }
     
     /**
@@ -118,7 +123,12 @@ public class BufferPool {
      * @param dirty the status of dirty_bit of the page (true or false)
      */          
     public void unpinPage(int index, TransactionId tid, boolean dirty) throws DbException, IOException {
-    	//IMPLEMENT THIS
+    	HeapPage p = (HeapPage) buffer[index];
+        if(p.pin_count == 0) throw new DbException("Page is not pinned.");
+        p.pin_count --;
+        if(dirty) p.dirty = dirty;
+
+        if(p.pin_count == 0) flushPage(p.id());
     }
 
     /**
@@ -227,8 +237,41 @@ public class BufferPool {
      * Discards a page from the buffer pool. Return index of discarded page
      */
     private synchronized int evictPage() throws DbException {
-    	//IMPLEMENT THIS
-    	return 0;
+    	for(int i = 0; i < buffer.length; i ++){
+            Page p = buffer[i];
+            if(p == null) return i;
+        }
+
+        int replacedId = -1;
+
+        // No free pages left, time to cry.
+        if(replace_policy == MRU_POLICY){
+            HeapPage mostRecent = null;
+            for(int i = 0; i < buffer.length; i ++){
+                HeapPage p = (HeapPage) buffer[i];
+                if (((HeapPage) p).pin_count != 0) continue;
+                if(mostRecent == null || p.lastUsage > mostRecent.lastUsage){
+                    mostRecent = p;
+                    replacedId = i;
+                }
+            }
+        }else if(replace_policy == LRU_POLICY){
+            HeapPage leastRecent = null;
+            for(int i = 0; i < buffer.length; i ++){
+                HeapPage p = (HeapPage) buffer[i];
+                if (((HeapPage) p).pin_count != 0) continue;
+                if(leastRecent == null || p.lastUsage < leastRecent.lastUsage){
+                    leastRecent = p;
+                    replacedId = i;
+                }
+            }
+        }else{
+            replacedId = 0;
+        }
+
+        if(replacedId == -1) throw new DbException("No pages eligible for replacement.");
+
+        return replacedId;
     }
 	
     public int getNumHits(){

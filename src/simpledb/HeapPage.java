@@ -20,6 +20,7 @@ public class HeapPage implements Page {
     boolean dirty;			// dirty_bit
     int pin_count;			// pin_count
     TransactionId lasttrans;
+    long lastUsage = -1;
 
 
     /**
