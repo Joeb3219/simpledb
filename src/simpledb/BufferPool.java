@@ -40,7 +40,6 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         //IMPLEMENT THIS
-        System.out.println("Creating a pool with " + numPages + " pages");
         buffer = new HeapPage[numPages];
 
     }
@@ -64,29 +63,19 @@ public class BufferPool {
     public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException, IOException {
     	
-        System.out.println("Requesting page " + pid.pageno() + " " + pid.tableid());
-
-/*        System.out.println("Here's what I have in memory:");
-
-        for(Page p : buffer){
-            if(p == null) continue;
-            System.out.println("\t\t" + p.id().pageno() + ", " + p.id().tableid());
-            System.out.println("\t\t\t\t" + p.id() + "\t" + pid);
-        }
-
-        System.out.println("That's it");
-*/
         for(int i = 0; i < buffer.length; i ++){
             Page p = buffer[i];
             if(p == null) continue;
             if(p.id().equals(pid)) {
 
+                _numhits ++;
                 pinPage(i);
 
                 return p;
             }
         }
 
+        _nummisses ++;
         int newId = evictPage();
         Catalog catalog = Database.getCatalog();
         DbFile file = catalog.getDbFile(pid.tableid());
@@ -128,7 +117,7 @@ public class BufferPool {
         p.pin_count --;
         if(dirty) p.dirty = dirty;
 
-        if(p.pin_count == 0) flushPage(p.id());
+        if(dirty) flushPage(p.id());
     }
 
     /**

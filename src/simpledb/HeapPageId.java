@@ -45,6 +45,10 @@ public class HeapPageId implements PageId {
 
     }
 
+    public String toString(){
+        return "" + this._pgNo;
+    }
+
     /**
      * Compares one PageId to another.
      *

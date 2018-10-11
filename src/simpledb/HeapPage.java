@@ -272,7 +272,7 @@ public class HeapPage implements Page {
     public int getNumEmptySlots() {
         int numEmpty = 0;
 
-        System.out.println("There are " + header.length + " headers, for " + numSlots + " slots.");
+        //System.out.println("There are " + header.length + " headers, for " + numSlots + " slots.");
 
         for(int j = 0; j < numSlots; j ++){
             if(!getSlot(j)) numEmpty ++;
@@ -303,7 +303,7 @@ public class HeapPage implements Page {
 
         int h = header[hNum];
 
-        System.out.println("Before setting " + i + " -> " + value + " => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
+        //System.out.println("Before setting " + i + " -> " + value + " => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
 
         if(value){
             h |= (0x1 << offset);
@@ -311,7 +311,7 @@ public class HeapPage implements Page {
             h &= ~(0x1 << offset);
         }
 
-        System.out.println("After setting => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
+        //System.out.println("After setting => " + String.format("%32s", Integer.toBinaryString(h)).replace(' ', '0'));
 
     }
 
